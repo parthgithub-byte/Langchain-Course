@@ -4,6 +4,7 @@ from langchain_ollama import ChatOllama
 
 load_dotenv()
 
+
 def main():
     information = """
 alman Salim Khan (born Abdul Rashid Salim Salman Khan,[a] 27 December 1965) is an Indian actor, film producer, and television personality who predominantly works in Hindi films. In a career spanning over three decades, his awards include two National Film Awards as a film producer, and two Filmfare Awards as an actor.[3] He has been cited in the media as one of the most popular and commercially successful actors of Indian cinema.[4][5] Forbes included him in listings of the highest-paid celebrities in the world, in 2015 and 2018.[6][7][8]
@@ -24,13 +25,14 @@ In addition to his acting career, Khan is a television presenter and promotes hu
     summary_prompt_template = PromptTemplate(
         input_variables=["information"], template=summary_template
     )
-    llm = ChatOllama(temperature = 0, model = "gemma3:270m")
+    llm = ChatOllama(temperature=0, model="gemma3:270m")
 
     chain = summary_prompt_template | llm
 
-    response = chain.invoke(input= {"information":information})
+    response = chain.invoke(input={"information": information})
     print(response.content)
-    
+
+
 if __name__ == "__main__":
     main()
 
