@@ -219,13 +219,14 @@ if __name__ == "__main__":
 #   [Tool Result: 1299.99]
 
 # --- Iteration 2 ---
-#  [Tool Selected] apply_discount with args: {'price': 1299.99, 'discount_tier': 'gold'}
+#  [Tool Selected] apply_discount with args: {'discount_tier': 'gold', 'price': 1299.99}
 #    >>Executing apply_discount(price=1299.99, discount_tier = 'gold')
 #   [Tool Result: 1000.99]
 
 # --- Iteration 3 ---
 
-# Final Answer: The original price of the laptop was $1299.99. After applying the gold discount, the final price is **$1000.99**. Let me know if you need help with anything else!
-# You can trace this out in LangSmith to see the flow of work!
+# Final Answer: [{'type': 'text', 'text': 'The price of the laptop after applying the gold discount is $1000.99.', 'extras': {'signature': 'EjQKMgEMOdbHogK4vjD6BIJt1a0pZImpJ2qLJbkKH9dgJycordlrQoI9bbmMdpFacgVUuR1R'}}]
+# # You can trace this out in LangSmith to see the flow of work!
 
-# (Latency: 223 sec 😱)
+# (Latency: In the first try, did not run due to multiple requests for this free model. After many days, when tried
+# the latency is 161 seconds 😱. Still better than my offline OLLAMA though 😁)
