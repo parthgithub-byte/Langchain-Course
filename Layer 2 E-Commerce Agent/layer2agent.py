@@ -1,5 +1,5 @@
 # Layer2: We will not use lancghain objects this time, but OLLAMA Pyhton SDK
-# We have al;ready installed the OLLAMA SDK inderectly when w installed langchain-ollama as a dependency in environment
+# We have already installed the OLLAMA SDK inderectly when we installed langchain-ollama as a dependency in environment
 
 from dotenv import load_dotenv
 load_dotenv()
