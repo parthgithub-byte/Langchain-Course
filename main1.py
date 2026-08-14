@@ -7,7 +7,7 @@ load_dotenv()
 
 def main():
     information = """
-alman Salim Khan (born Abdul Rashid Salim Salman Khan,[a] 27 December 1965) is an Indian actor, film producer, and television personality who predominantly works in Hindi films. In a career spanning over three decades, his awards include two National Film Awards as a film producer, and two Filmfare Awards as an actor.[3] He has been cited in the media as one of the most popular and commercially successful actors of Indian cinema.[4][5] Forbes included him in listings of the highest-paid celebrities in the world, in 2015 and 2018.[6][7][8]
+Salman Salim Khan (born Abdul Rashid Salim Salman Khan,[a] 27 December 1965) is an Indian actor, film producer, and television personality who predominantly works in Hindi films. In a career spanning over three decades, his awards include two National Film Awards as a film producer, and two Filmfare Awards as an actor.[3] He has been cited in the media as one of the most popular and commercially successful actors of Indian cinema.[4][5] Forbes included him in listings of the highest-paid celebrities in the world, in 2015 and 2018.[6][7][8]
 
 Khan began his acting career with a supporting role in Biwi Ho To Aisi (1988), followed by his breakthrough with a leading role in Sooraj Barjatya's romantic drama Maine Pyar Kiya (1989), for which he was awarded the Filmfare Award for Best Male Debut. He established himself with other commercially successful films, including Lawrence D'Souza's romantic drama Saajan (1991), Barjatya's family dramas Hum Aapke Hain Koun..! (1994) and Hum Saath-Saath Hain (1999), the action film Karan Arjun (1995) and the comedy Biwi No.1 (1999). This followed a period of decline in romantic comedy, musicals and tragedy drama in the 2000s.
 
@@ -25,7 +25,7 @@ In addition to his acting career, Khan is a television presenter and promotes hu
     summary_prompt_template = PromptTemplate(
         input_variables=["information"], template=summary_template
     )
-    llm = ChatGoogleGenerativeAI(temperature=0, model="gemini-2.5-flash")
+    llm = ChatGoogleGenerativeAI(temperature=0, model="gemini-3.0-flash")
 
     chain = summary_prompt_template | llm
 
