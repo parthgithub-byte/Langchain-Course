@@ -76,7 +76,7 @@ This is the connection to Google's servers.
 
 temperature=0: This controls "creativity." 0 means "be factual and deterministic." Since you are summarizing a biography, you don't want the AI to "hallucinate" or get creative with the facts.
 
-model="gemini-2.5-flash": This specifies which version of Gemini to use. "Flash" is the fast, cost-efficient model.
+model="gemini-3.6-flash": This specifies which version of Gemini to use. "Flash" is the fast, cost-efficient model.
 
 6. The | (Pipe) Operator
 Concept: LCEL (LangChain Expression Language).

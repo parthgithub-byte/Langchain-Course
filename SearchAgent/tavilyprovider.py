@@ -22,7 +22,7 @@ class AgentResponse(BaseModel):
     answer:str = Field(description="The agent's answer to the query")
     sources:List[Source] = Field(default_factory=list, description="List of sources used to generate the answer")
 
-llm = ChatGoogleGenerativeAI(model="gemini-3-flash-preview")
+llm = ChatGoogleGenerativeAI(model="gemini-3.6-flash")
 tools = [TavilySearch()]
 agent = create_agent(
     model = llm, 

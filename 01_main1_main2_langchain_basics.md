@@ -45,7 +45,7 @@ summary_prompt_template = PromptTemplate(
 - **Why not just use an f-string?** Because `PromptTemplate` objects can be saved, shared, and reused across a larger app — an f-string can't be composed into a chain.
 
 ```python
-llm = ChatGoogleGenerativeAI(temperature=0, model="gemini-3.0-flash")   # main1.py
+llm = ChatGoogleGenerativeAI(temperature=0, model="gemini-3.6-flash")   # main1.py
 llm = ChatOllama(temperature=0, model="gemma3:270m")                    # main2.py
 ```
 This is the only line that meaningfully differs between the two files.

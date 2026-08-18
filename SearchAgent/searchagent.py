@@ -22,7 +22,7 @@ def search(query: str) -> str:
     return tavily.search(query=query)
 
 
-llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
+llm = ChatGoogleGenerativeAI(model="gemini-3.6-flash")
 tools = [search]
 agent = create_agent(model=llm, tools=tools)
 

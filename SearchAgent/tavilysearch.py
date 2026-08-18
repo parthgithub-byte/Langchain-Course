@@ -13,7 +13,7 @@ from langchain_tavily import TavilySearch
 # TavilySearch is the inbuilt optimised searching tool by Tavily itself
 # Now we do not need the tool, since we are directly using the TavilySearch 
 
-llm = ChatGoogleGenerativeAI(model="gemini-3-flash-preview")
+llm = ChatGoogleGenerativeAI(model="gemini-3.6-flash")
 tools = [TavilySearch()]
 agent = create_agent(model=llm,tools=tools)
 
