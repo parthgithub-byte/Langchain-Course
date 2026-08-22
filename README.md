@@ -22,8 +22,7 @@ This project serves as a comprehensive log of my learning journey through LangCh
 
 ### 🎯 Core Concepts Explored
 * **Hybrid Model Integration:** Routing tasks between Google's Gemini API, local open-weights models via Ollama, and cloud models via OpenRouter.
-* **Agents & Tool Calling:** Building ReAct-style agents that dynamically select tools and reason over multiple steps — first with LangChain, then rebuilt on the raw Ollama SDK to see what the framework abstracts away.
-* **Prebuilt Agents & Structured Output:** Using LangChain's `create_agent` with web search tooling (Tavily) and Pydantic-validated structured responses.
+* **Agents, from the Outside In:** The same ReAct (reason → act → observe) agent taken apart across three layers — Layer 0 uses LangChain's prebuilt `create_agent` (batteries included, web search via Tavily, structured output via Pydantic); Layer 1 rebuilds that same loop by hand with LangChain (`bind_tools`, `@tool`); Layer 2 strips LangChain out entirely and rebuilds it again on the raw Ollama SDK, at the protocol level.
 * **Tracing & Observability:** Instrumenting both LangChain and raw-SDK code paths with LangSmith (`@traceable`) to compare automatic vs. manual tracing.
 
 ### 🗺️ Planned / Not Yet Built
@@ -35,13 +34,15 @@ This project serves as a comprehensive log of my learning journey through LangCh
 
 Each stage of the course has a companion `.md` writeup living next to its code, explaining the concepts and design decisions in depth. This table is the map — update it whenever a new stage's notes file is added.
 
+**The layer numbers trace an abstraction arc, not a feature-count sequence:** Layer 0 is the most abstracted (prebuilt agent), Layer 1 rebuilds it by hand within LangChain, and Layer 2 strips LangChain out entirely. Read 0 → 1 → 2 to see the same agent from the outside in.
+
 | Stage | Topic | Code | Notes |
 |---|---|---|---|
 | Basics | Prompt → Model → Chain | [`main1.py`](main1.py), [`main2.py`](main2.py) | [main1_main2_langchain_basics.md](main1_main2_langchain_basics.md) |
-| Layer 1 | ReAct Agent Loop (LangChain) | [`Layer 1 E-Commerce Agent/`](Layer%201%20E-Commerce%20Agent/) | [layer1agent_langchain_react_loop.md](Layer%201%20E-Commerce%20Agent/layer1agent_langchain_react_loop.md) |
+| Layer 0 | Prebuilt Agents (`create_agent`) + Web Search + Structured Output | [`Layer 0 SearchAgent/`](Layer%200%20SearchAgent/) | [layer0search_agents_tavily_structured_output.md](Layer%200%20SearchAgent/layer0search_agents_tavily_structured_output.md) |
+| Layer 1 | ReAct Agent Loop, Hand-Built (LangChain) | [`Layer 1 E-Commerce Agent/`](Layer%201%20E-Commerce%20Agent/) | [layer1agent_langchain_react_loop.md](Layer%201%20E-Commerce%20Agent/layer1agent_langchain_react_loop.md) |
 | Layer 2 | Same Agent, No LangChain (Raw Ollama SDK) | [`Layer 2 E-Commerce Agent/`](Layer%202%20E-Commerce%20Agent/) | [layer2agent_raw_ollama_sdk.md](Layer%202%20E-Commerce%20Agent/layer2agent_raw_ollama_sdk.md) |
-| Layer 3 | Prebuilt Agents + Web Search + Structured Output | [`Layer 3 SearchAgent/`](Layer%203%20SearchAgent/) | [layer3search_agents_tavily_structured_output.md](Layer%203%20SearchAgent/layer3search_agents_tavily_structured_output.md) |
-| Layer 4 | *(upcoming)* | — | — |
+| Layer 3 | *(upcoming)* | — | — |
 
 **Convention for new stages:** name the notes file `layerN<topic>.md`, keep it in the same folder as the code it documents, and add a row here.
 
@@ -94,7 +95,7 @@ Create a `.env` file in the root directory. Important: Ensure `.env` is listed i
 # Google Gemini API Key
 GOOGLE_API_KEY="AIzaSyYourGeminiKeyHere..."
 
-# Tavily (required for Layer 3's web search tooling)
+# Tavily (required for Layer 0's web search tooling)
 TAVILY_API_KEY="tvly-your_tavily_key..."
 
 # LangSmith (Optional: for tracing and debugging)

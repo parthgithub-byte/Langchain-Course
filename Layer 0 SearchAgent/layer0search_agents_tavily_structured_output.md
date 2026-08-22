@@ -1,9 +1,9 @@
 # `jobsearch.py`, `searchagent.py`, `tavilyprovider.py`, `tavilypydantic.py`, `tavilysearch.py`, `jobsearch2.py`
-## Layer 3: Prebuilt Agents (`create_agent`) + Web Search Tooling + Structured Output
+## Layer 0: Prebuilt Agents (`create_agent`) + Web Search Tooling + Structured Output
 
 ## What these files are
 
-All six files use LangChain's **prebuilt agent constructor**, `create_agent(model=..., tools=...)`, instead of the hand-rolled ReAct loop from Layers 1 and 2. `create_agent` internally implements the same reason → act → observe cycle you built manually before, but hides it behind a single call. Every file in this group answers a question that needs **live web data** the model doesn't have — so the point of the group is: *how do you give an agent internet access, and how do you shape what it hands back?*
+This is the **starting point** of the agent arc, not the end of it — deliberately the most abstracted stage. All six files use LangChain's **prebuilt agent constructor**, `create_agent(model=..., tools=...)`, which internally implements a full reason → act → observe cycle behind a single call, with no loop code visible at all. Layers 1 and 2 will pull back that curtain — first rebuilding this same cycle by hand with LangChain (Layer 1), then again with zero framework at the raw protocol level (Layer 2). Every file in this group answers a question that needs **live web data** the model doesn't have — so the point of the group is: *how do you give an agent internet access, and how do you shape what it hands back?*
 
 The six files form a clear progression:
 
@@ -30,7 +30,7 @@ agent = create_agent(model=llm, tools=tools)
 result = agent.invoke({"messages": HumanMessage(content="...")})
 ```
 
-- `create_agent` is LangChain's batteries-included agent builder. Give it a model and a list of tools, and it wires up the same bind-tools → loop → tool-call → feed-back-result cycle from `layer1agent.py`, but you never see the loop code.
+- `create_agent` is LangChain's batteries-included agent builder. Give it a model and a list of tools, and it wires up the same bind-tools → loop → tool-call → feed-back-result cycle you'll later build by hand in `layer1agent.py` (Layer 1) — but here, you never see the loop code.
 - The invocation shape is always `{"messages": [...]}` — a **list of messages**, matching the underlying chat message protocol seen throughout this project (`HumanMessage`, `SystemMessage`, etc. from `langchain_core.messages`).
 - `result` is a state dict; without `response_format` it typically holds the full running `messages` list (see `searchagent.py`'s printed LangSmith trace below for what that looks like at each step). With `response_format` set (last two files), `result` becomes an instance of your Pydantic model directly.
 
@@ -83,7 +83,7 @@ def main():
   3. **Tool** → raw JSON blob returned by Tavily: multiple result objects, each with `title`, `url`, `content`, `score`, plus top-level `response_time` and `request_id`
   4. **AI** → final natural-language answer, synthesized from the tool's JSON (temperature, wind, humidity, local time), attributing this to `create_agent`'s automatic "read tool output → write final answer" step
 
-This confirms `create_agent` is doing precisely the Reason → Act → Observe loop from Layers 1–2, just without exposing the `for` loop, `tool_calls` check, or message-appending code to you.
+This is precisely the Reason → Act → Observe loop you'll hand-roll in Layers 1–2 — `create_agent` just hides the `for` loop, `tool_calls` check, and message-appending code from you here.
 
 ---
 
@@ -135,7 +135,7 @@ tools = [TavilySearch()]
 agent = create_agent(model=llm, tools=tools)
 ```
 - Where `jobsearch.py`/`searchagent.py` manually wrapped `TavilyClient` inside a `@tool` function, this file uses **`langchain_tavily.TavilySearch()`** directly as the tool object — no `@tool` decorator, no manual docstring, no manual `tavily.search(...)` call. It's LangChain's own maintained integration, pre-optimized for agent use (better default result formatting, built-in schema).
-- This is the same "hand-written vs. framework-provided" tradeoff seen in Layer 2 (`layer2agent.py`'s manual JSON schema vs. auto-generation) — except here it goes the *other* direction: moving from manual back to prebuilt.
+- You'll meet the same "hand-written vs. framework-provided" tradeoff again in Layer 2 (`layer2agent.py`'s manual JSON schema vs. auto-generation) — there it moves *toward* hand-written as the framework is stripped away; here it moves the opposite way, from a hand-wrapped tool toward LangChain's prebuilt one.
 
 ```python
 os.environ["LANGSMITH_PROJECT"] = "TavilySearch Search-Agent"
@@ -185,7 +185,7 @@ agent = create_agent(
   - **Zero "hack" overhead** — no pretend tool-calling reasoning step
   - **Cheaper and faster** — fewer tokens spent, since the "I should call a tool now" internal reasoning is skipped
   - **Higher reliability** — schema enforcement happens at the API level, so it's far less prone to hallucinated fields or broken JSON than the tool-calling approach
-- Usage is unchanged from `tavilypydantic.py`: `results.answer`, and iterate `results.sources` for `.url` — the *interface* is identical; only the *mechanism* generating it differs. This is the same lesson Layer 2 taught (framework vs. protocol) applied to output formatting instead of tool calling.
+- Usage is unchanged from `tavilypydantic.py`: `results.answer`, and iterate `results.sources` for `.url` — the *interface* is identical; only the *mechanism* generating it differs. This is the same lesson Layer 2 will teach (framework vs. protocol), applied here to output formatting instead of tool calling.
 
 ---
 
@@ -200,7 +200,7 @@ agent = create_agent(
 
 | Concept | Where introduced | Purpose |
 |---|---|---|
-| `create_agent(model, tools)` | All 5 files | Prebuilt ReAct-style agent; hides the manual loop from Layers 1–2 |
+| `create_agent(model, tools)` | All 5 files | Prebuilt ReAct-style agent; hides the manual loop you build by hand in Layers 1–2 |
 | `TavilyClient()` + `@tool` | `jobsearch.py`, `searchagent.py` | Manually wrap a 3rd-party search SDK as an agent tool |
 | `langchain_tavily.TavilySearch()` | `tavilysearch.py` onward | Prebuilt, agent-optimized search tool — no manual wrapping |
 | `os.environ["LANGSMITH_PROJECT"] = ...` | `tavilysearch.py`, `tavilypydantic.py`, `tavilyprovider.py` | Route each script's trace into its own named LangSmith project, overriding `.env` |
@@ -210,3 +210,9 @@ agent = create_agent(
 
 ## Note on images
 No image files or references to screenshots/diagrams appear in the comments of any of these five files, so none are included here.
+
+---
+
+## Why this matters for later files
+
+This is "Layer 0" specifically because it's the *ceiling* of the abstraction arc, not a step within it: `create_agent` gives you the finished, batteries-included product first. Layer 1 (`layer1agent.py`) then rebuilds the same reason → act → observe cycle by hand with LangChain, and Layer 2 (`layer2agent.py`) strips LangChain out entirely to show it at the raw protocol level. Read in order — 0 → 1 → 2 — the group teaches the same agent from the outside in: what it looks like fully wrapped, what it looks like hand-assembled, and what it looks like with no wrapping at all.
