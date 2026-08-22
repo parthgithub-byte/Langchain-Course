@@ -21,19 +21,41 @@ A repository dedicated to exploring AI application development and hybrid LLM wo
 This project serves as a comprehensive log of my learning journey through LangChain. It focuses on the architectural differences and practical applications of alternating between cloud-based commercial models and local, private models.
 
 ### 🎯 Core Concepts Explored
-* **Hybrid Model Integration:** Routing tasks between Google's Gemini API and local open-source models (like LLaMA 3, Mistral) running via Ollama.
-* **Retrieval Augmented Generation (RAG):** "Chatting" with custom documents using optimized document loaders, text splitters, and embedding models.
-* **Vector Databases:** Storing and querying high-dimensional semantic data using local vector stores like ChromaDB or FAISS.
-* **Conversational Memory:** Implementing short-term and long-term memory structures to maintain context across multiple turns.
-* **Agents & Tool Calling:** Building AI agents capable of dynamically routing tasks and using external APIs to solve complex queries.
+* **Hybrid Model Integration:** Routing tasks between Google's Gemini API, local open-weights models via Ollama, and cloud models via OpenRouter.
+* **Agents & Tool Calling:** Building ReAct-style agents that dynamically select tools and reason over multiple steps — first with LangChain, then rebuilt on the raw Ollama SDK to see what the framework abstracts away.
+* **Prebuilt Agents & Structured Output:** Using LangChain's `create_agent` with web search tooling (Tavily) and Pydantic-validated structured responses.
+* **Tracing & Observability:** Instrumenting both LangChain and raw-SDK code paths with LangSmith (`@traceable`) to compare automatic vs. manual tracing.
+
+### 🗺️ Planned / Not Yet Built
+
+* **Retrieval Augmented Generation (RAG)** and **Vector Databases** (ChromaDB/FAISS) — chatting with custom documents.
+* **Conversational Memory** — short-term and long-term context across turns.
+
+## 📚 Notes Index
+
+Each stage of the course has a companion `.md` writeup living next to its code, explaining the concepts and design decisions in depth. This table is the map — update it whenever a new stage's notes file is added.
+
+| Stage | Topic | Code | Notes |
+|---|---|---|---|
+| Basics | Prompt → Model → Chain | [`main1.py`](main1.py), [`main2.py`](main2.py) | [main1_main2_langchain_basics.md](main1_main2_langchain_basics.md) |
+| Layer 1 | ReAct Agent Loop (LangChain) | [`Layer 1 E-Commerce Agent/`](Layer%201%20E-Commerce%20Agent/) | [layer1agent_langchain_react_loop.md](Layer%201%20E-Commerce%20Agent/layer1agent_langchain_react_loop.md) |
+| Layer 2 | Same Agent, No LangChain (Raw Ollama SDK) | [`Layer 2 E-Commerce Agent/`](Layer%202%20E-Commerce%20Agent/) | [layer2agent_raw_ollama_sdk.md](Layer%202%20E-Commerce%20Agent/layer2agent_raw_ollama_sdk.md) |
+| Layer 3 | Prebuilt Agents + Web Search + Structured Output | [`Layer 3 SearchAgent/`](Layer%203%20SearchAgent/) | [layer3search_agents_tavily_structured_output.md](Layer%203%20SearchAgent/layer3search_agents_tavily_structured_output.md) |
+| Layer 4 | *(upcoming)* | — | — |
+
+**Convention for new stages:** name the notes file `layerN<topic>.md`, keep it in the same folder as the code it documents, and add a row here.
+
+---
 
 ## 🛠️ Tech Stack
 
-* **Language:** Python 3.x
+* **Language:** Python 3.13
 * **Package Manager:** `uv` (by Astral)
-* **Framework:** LangChain
-* **Cloud LLM:** Google Gemini API
-* **Local LLM:** Ollama (LLaMA 3, Mistral, etc.)
+* **Framework:** LangChain — with Layer 2 deliberately dropping it for the raw Ollama SDK, to show what the framework abstracts away
+* **Cloud LLM:** Google Gemini API, OpenRouter
+* **Local LLM:** Ollama (e.g. `qwen3:1.7b`)
+* **Search Tooling:** Tavily (`langchain-tavily`, `tavily-python`)
+* **Tracing:** LangSmith (`@traceable`)
 * **Environment:** `.env` for secure credential management
 
 ---
@@ -44,22 +66,20 @@ This project uses `uv` to make environment setup incredibly fast.
 
 **1. Clone the repository:**
 ```bash
-git clone [https://github.com/parthgithub-byte/Langchain-Course.git](https://github.com/parthgithub-byte/Langchain-Course.git)
+git clone https://github.com/parthgithub-byte/Langchain-Course.git
 cd Langchain-Course
 ```
 
-**2. Setup Environment with `uv`:
+**2. Setup Environment with `uv`:**
 If you don't have `uv` installed, [install it here](https://github.com/astral-sh/uv).  
 ```bash
-# Create a virtual environment instantly
-uv venv
+# Installs Python 3.13, creates .venv, and installs all locked dependencies
+uv sync
 
 # Activate it (Mac/Linux)
 source .venv/bin/activate
-# Or on Windows: .venv\Scripts\activate
-
-# Install dependencies blazingly fast
-uv pip install -r requirements.txt
+# Or on Windows:
+.venv\Scripts\activate
 ```
 
 **3. Set up Ollama (For Local Models):**
@@ -72,11 +92,16 @@ ollama run llama3
 Create a `.env` file in the root directory. Important: Ensure `.env` is listed in your `.gitignore` file so you do not accidentally push your keys to GitHub!
 ```
 # Google Gemini API Key
-GEMINI_API_KEY="AIzaSyYourGeminiKeyHere..."
+GOOGLE_API_KEY="AIzaSyYourGeminiKeyHere..."
+
+# Tavily (required for Layer 3's web search tooling)
+TAVILY_API_KEY="tvly-your_tavily_key..."
 
 # LangSmith (Optional: for tracing and debugging)
-LANGCHAIN_TRACING_V2=true
-LANGCHAIN_API_KEY="ls__your_langchain_key..."
+LANGSMITH_TRACING=true
+LANGSMITH_ENDPOINT="https://api.smith.langchain.com"
+LANGSMITH_API_KEY="lsv2_your_langsmith_key..."
+LANGSMITH_PROJECT="your-project-name"
 ```
 
 ## 👨‍💻 Author
