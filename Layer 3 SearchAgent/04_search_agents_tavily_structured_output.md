@@ -1,11 +1,11 @@
-# `jobsearch.py`, `searchagent.py`, `tavilyprovider.py`, `tavilypydantic.py`, `tavilysearch.py`
+# `jobsearch.py`, `searchagent.py`, `tavilyprovider.py`, `tavilypydantic.py`, `tavilysearch.py`, `jobsearch2.py`
 ## Layer 3: Prebuilt Agents (`create_agent`) + Web Search Tooling + Structured Output
 
 ## What these files are
 
-All five files use LangChain's **prebuilt agent constructor**, `create_agent(model=..., tools=...)`, instead of the hand-rolled ReAct loop from Layers 1 and 2. `create_agent` internally implements the same reason → act → observe cycle you built manually before, but hides it behind a single call. Every file in this group answers a question that needs **live web data** the model doesn't have — so the point of the group is: *how do you give an agent internet access, and how do you shape what it hands back?*
+All six files use LangChain's **prebuilt agent constructor**, `create_agent(model=..., tools=...)`, instead of the hand-rolled ReAct loop from Layers 1 and 2. `create_agent` internally implements the same reason → act → observe cycle you built manually before, but hides it behind a single call. Every file in this group answers a question that needs **live web data** the model doesn't have — so the point of the group is: *how do you give an agent internet access, and how do you shape what it hands back?*
 
-The five files form a clear progression:
+The six files form a clear progression:
 
 | File | What it adds/changes | Search tool | Structured output? |
 |---|---|---|---|
@@ -14,8 +14,9 @@ The five files form a clear progression:
 | `tavilysearch.py` | Swaps the hand-written tool for LangChain's **prebuilt** `TavilySearch()` | `langchain_tavily.TavilySearch` | No |
 | `tavilypydantic.py` | Adds a Pydantic schema so the agent returns typed `answer` + `sources` | `TavilySearch` | Yes — `response_format=AgentResponse` (default "tool strategy") |
 | `tavilyprovider.py` | Same schema, but forces **native** structured output instead of the tool-calling hack | `TavilySearch` | Yes — `response_format=ProviderStrategy(schema=AgentResponse)` |
+| `jobsearch2.py` | Same baseline pattern as `jobsearch.py`, but swaps the model provider to **OpenRouter** | Hand-wrapped `TavilyClient` via `@tool` | No |
 
-Read in this order, the group teaches: *custom tool → prebuilt tool → typed output → optimized typed output.*
+Read in this order, the group teaches: *custom tool → prebuilt tool → typed output → optimized typed output → provider portability.*
 
 ---
 
@@ -59,7 +60,7 @@ agent = create_agent(model=llm, tools=tools)
 ```
 - `TavilyClient()` is the **raw Tavily SDK client** (not a LangChain integration) — you're calling Tavily's search API directly inside your own `@tool`-decorated function.
 - Note the docstring uses **Google-style `Args:`/`Returns:`** formatting — this matters because `@tool` (and separately, Ollama's auto-schema feature seen in Layer 2) parses this format to build accurate parameter descriptions for the LLM.
-- **Model choice matters here**: the trailing comment explicitly flags `gemini-3-flash-preview` as required — "It is slower, but handles agentic workflow" — implying faster/cheaper Gemini variants were tried and didn't reliably drive multi-step tool use.
+- **Model choice matters here**: the trailing comment explicitly flags `gemini-3.6-flash` as required — "It is slower, but handles agentic workflow" — implying faster/cheaper Gemini variants were tried and didn't reliably drive multi-step tool use.
 - The query — *"search for 3 job postings for an ai engineer using langchain in the Pune or Mumbai area on linkedin"* — demonstrates the agent doing multiple things behind the scenes with **one tool call type**: reformulating the request into a search query, calling `search`, then synthesizing structured markdown (headers, bullet lists, links) from unstructured search results, entirely from the system's default behavior (no explicit output formatting requested).
 
 ---
@@ -67,7 +68,7 @@ agent = create_agent(model=llm, tools=tools)
 ## `searchagent.py` — same pattern, illustrating the trace shape
 
 ```python
-llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
+llm = ChatGoogleGenerativeAI(model="gemini-3.6-flash")
 tools = [search]
 agent = create_agent(model=llm, tools=tools)
 
@@ -75,7 +76,7 @@ def main():
     results = agent.invoke({"messages": HumanMessage(content="What is the weather of Tokyo?")})
     print(results)
 ```
-- Nearly identical to `jobsearch.py`'s tool setup (same `@tool`-wrapped `TavilyClient`), but a simpler question, and a **different, faster model** (`gemini-2.5-flash` vs. `gemini-3-flash-preview`) — since a single-fact weather lookup doesn't need the heavier agentic reasoning `jobsearch.py`'s multi-item job search required.
+- Nearly identical to `jobsearch.py`'s tool setup (same `@tool`-wrapped `TavilyClient`) and the same model (`gemini-3.6-flash`), but a simpler question — a single-fact weather lookup doesn't need the heavier agentic reasoning `jobsearch.py`'s multi-item job search required.
 - The commented-out trace at the bottom is the most valuable part of this file — it shows **exactly what `create_agent` does internally**, message by message:
   1. **Human** → `"What is the weather of Tokyo?"`
   2. **AI** → decides to call `search`, with `query: "weather in Tokyo"` (the model reformulates the user's question into a good search query — it doesn't just forward the raw question)
@@ -83,6 +84,42 @@ def main():
   4. **AI** → final natural-language answer, synthesized from the tool's JSON (temperature, wind, humidity, local time), attributing this to `create_agent`'s automatic "read tool output → write final answer" step
 
 This confirms `create_agent` is doing precisely the Reason → Act → Observe loop from Layers 1–2, just without exposing the `for` loop, `tool_calls` check, or message-appending code to you.
+
+---
+
+## `jobsearch2.py` — same custom-tool pattern, different model provider (OpenRouter)
+
+```python
+from langchain_openrouter import ChatOpenRouter
+from tavily import TavilyClient
+
+tavily = TavilyClient()
+
+@tool
+def search(query: str) -> str:
+    """
+    A tool that searches over the internet
+    Args:
+        query: The query to seach for
+    Returns:
+        The search result
+    """
+    print(f"Searching for {query}")
+    return tavily.search(query=query)
+
+llm = ChatOpenRouter(model="nvidia/nemotron-3.5-lightning:free")
+tools = [search]
+agent = create_agent(model=llm, tools=tools)
+
+def main():
+    result = agent.invoke({"messages": HumanMessage(content="search for 3 job postings for Automation Testing roles in Pune")})
+    print(result)
+```
+- **Structurally identical** to `jobsearch.py`: same `TavilyClient()` + `@tool`-wrapped `search` function (down to the docstring shape), same `create_agent(model=llm, tools=tools)` call, same `{"messages": HumanMessage(...)}` invocation pattern, no `response_format`.
+- The **only real change** is the model wrapper: `ChatOpenRouter(model="nvidia/nemotron-3.5-lightning:free")` in place of `ChatGoogleGenerativeAI(model="gemini-3.6-flash")`. This is the same "swap the model, keep the pipeline" lesson from `main1.py`/`main2.py` and `layer1agent.py`/`layer1agentGemini.py`, now applied one level up at the agent layer — proving `create_agent` is just as provider-agnostic as `.bind_tools()` and `init_chat_model()` were.
+- **OpenRouter** is a routing layer that gives access to many different underlying models (here, NVIDIA's `nemotron-3.5-lightning`, on a free tier) through one unified API/interface — conceptually similar to why `init_chat_model()` existed in Layer 1: one consistent LangChain interface, swappable backend.
+- The query itself (*"3 job postings for Automation Testing roles in Pune"*) is a variant of `jobsearch.py`'s LinkedIn/AI-engineer search — same task shape (structured multi-item job listing via search), different domain, again showing the agent pattern generalizes across query topics without code changes.
+- No output formatting is applied here (no `response_format`), so like `jobsearch.py` and `searchagent.py`, `result` is the raw `create_agent` state — printed as-is rather than accessed via typed attributes.
 
 ---
 

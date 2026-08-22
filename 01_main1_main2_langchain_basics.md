@@ -10,7 +10,7 @@ The only difference between them is **which model answers the prompt**:
 |---|---|---|
 | Model provider | Google Gemini (cloud) | Ollama (local) |
 | Import | `from langchain_google_genai import ChatGoogleGenerativeAI` | `from langchain_ollama import ChatOllama` |
-| Model used | `gemini-3.0-flash` | `gemma3:270m` |
+| Model used | `gemini-3.6-flash` | `gemma3:270m` |
 | Needs API key? | Yes (`GOOGLE_API_KEY` via `.env`) | No — runs locally |
 
 This pairing exists to demonstrate that **LangChain's chain logic is provider-agnostic** — you can swap `ChatGoogleGenerativeAI` for `ChatOllama` and nothing else in the pipeline changes. This is the first appearance of a theme that recurs across the whole project: *the framework's abstractions stay the same, only the "engine" underneath changes.*

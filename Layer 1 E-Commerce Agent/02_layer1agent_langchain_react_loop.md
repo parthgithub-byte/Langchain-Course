@@ -8,8 +8,8 @@ Both files are **identical in structure and logic**. The only difference is whic
 
 | | `layer1agent.py` | `layer1agentGemini.py` |
 |---|---|---|
-| Model | `qwen3:1.7b` via **Ollama** (local) | `gemini-3.1-flash-lite-preview` via **Google GenAI** (cloud) |
-| Init call | `init_chat_model(f"ollama:{MODEL}", temperature=0)` | `init_chat_model("google_genai:gemini-3.1-flash-lite-preview", temperature=0)` |
+| Model | `qwen3:1.7b` via **Ollama** (local) | `gemini-3.6-flash` via **Google GenAI** (cloud) |
+| Init call | `init_chat_model(f"ollama:{MODEL}", temperature=0)` | `init_chat_model("google_genai:gemini-3.6-flash", temperature=0)` |
 | Observed latency | ~223 sec | ~161 sec (after retries — free tier rate-limited on first attempt) |
 | Final answer shape | Plain string | List of content blocks with a `signature` field (Gemini-specific metadata) |
 
@@ -27,7 +27,7 @@ from langsmith import traceable
 
 MAX_ITERATIONS = 10
 ```
-- `init_chat_model` — a provider-agnostic model loader. You give it a string like `"ollama:qwen3:1.7b"` or `"google_genai:gemini-3.1-flash-lite-preview"` and it figures out which integration to instantiate. This avoids importing a different class (`ChatOllama`, `ChatGoogleGenerativeAI`, ...) per provider, unlike `main1.py`/`main2.py`.
+- `init_chat_model` — a provider-agnostic model loader. You give it a string like `"ollama:qwen3:1.7b"` or `"google_genai:gemini-3.6-flash"` and it figures out which integration to instantiate. This avoids importing a different class (`ChatOllama`, `ChatGoogleGenerativeAI`, ...) per provider, unlike `main1.py`/`main2.py`.
 - `MAX_ITERATIONS` — a hard safety cap so the ReAct loop can't run forever if the model keeps calling tools without converging on an answer.
 - `@traceable` (from `langsmith`) — wraps the whole `run_agent` function so its execution shows up as a trace in LangSmith (Anthropic-unrelated observability tool for LLM apps).
 

@@ -35,7 +35,7 @@ def main():
 if __name__ == "__main__":
     main()
 
-# Remember to use the model gemini-3-flash-preview here. It is slower, but handles agentic workflow. 
+# Remember to use the model gemini-3.6-flash here. It is slower, but handles agentic workflow. 
 # Output:
 # Based on current LinkedIn listings, here are three job postings for AI Engineers specializing in LangChain in the Pune and Mumbai areas:
 

@@ -38,7 +38,7 @@ def run_agent(question:str):
 
     # the init_chat_model simplify the model declaration w/o any specific langchain imports 
     # with just the provider name as the necessity (may also skip if from specific family clearly)
-    llm = init_chat_model("google_genai:gemini-3.1-flash-lite-preview", temperature=0)
+    llm = init_chat_model("google_genai:gemini-3.6-flash", temperature=0)
     llm_with_tools = llm.bind_tools(tools)
 
     print(f"Question: {question}")
